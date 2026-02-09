@@ -16,7 +16,7 @@ WORKDIR /app
 RUN pip install uv
 
 # Copy project files
-COPY pyproject.toml .
+COPY pyproject.toml README.md ./
 COPY afo_mcp/ afo_mcp/
 COPY tests/ tests/
 
