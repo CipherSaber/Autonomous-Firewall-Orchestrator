@@ -35,9 +35,8 @@ ENV ROLLBACK_TIMEOUT=30
 # Expose MCP port
 EXPOSE 8765
 
-# Run as root for nftables access (required for firewall operations)
-# In production, use capabilities instead: CAP_NET_ADMIN
-USER root
+# Run as non-root user (nftables operations will fail without NET_ADMIN)
+USER afo
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

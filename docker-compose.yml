@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mcp-server:
     build:
@@ -19,12 +17,9 @@ services:
       - ./afo_mcp:/app/afo_mcp:ro
       # Persist backups
       - afo-backups:/var/lib/afo/backups
-    # Required for nftables access
-    cap_add:
-      - NET_ADMIN
-    # Use host network namespace for real firewall testing
-    # Uncomment for integration testing:
-    # network_mode: host
+    # Required for nftables access - uncomment on machines that allow it
+    # cap_add:
+    #   - NET_ADMIN
     networks:
       - afo-network
     healthcheck:
