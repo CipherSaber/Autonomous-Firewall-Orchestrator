@@ -2,7 +2,7 @@
 
 import re
 from dataclasses import dataclass
-from ipaddress import IPv4Network, IPv6Network, ip_network
+from ipaddress import IPv4Network, ip_network
 
 from afo_mcp.models import ConflictReport, ConflictType
 
@@ -106,8 +106,10 @@ def _networks_overlap(net1_str: str, net2_str: str) -> bool:
         net1 = ip_network(net1_str, strict=False)
         net2 = ip_network(net2_str, strict=False)
 
-        # Check if same IP version
-        if type(net1) != type(net2):
+        # Check if same IP version (both IPv4 or both IPv6)
+        net1_is_v4 = isinstance(net1, IPv4Network)
+        net2_is_v4 = isinstance(net2, IPv4Network)
+        if net1_is_v4 != net2_is_v4:
             return False
 
         return net1.overlaps(net2)
@@ -196,7 +198,7 @@ def _detect_conflict_type(
         if (proposed_accepts and existing_denies) or (proposed_denies and existing_accepts):
             return (
                 ConflictType.CONTRADICTION,
-                f"Rules have opposite actions: proposed={proposed.action}, existing={existing.action}",
+                f"Opposite actions: proposed={proposed.action}, existing={existing.action}",
             )
 
     # Check for redundancy (same match and action)

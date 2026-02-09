@@ -2,13 +2,15 @@
 
 import os
 import subprocess
+import tempfile
 import threading
 import time
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 
 from afo_mcp.models import DeploymentResult, DeploymentStatus
+from afo_mcp.security import contains_dangerous_chars
 
 # Global state for heartbeat monitors
 _active_heartbeats: dict[str, threading.Event] = {}
@@ -198,7 +200,7 @@ def deploy_policy(
         )
 
     # Validate content doesn't have shell injection
-    if any(char in rule_content for char in [";", "|", "&", "$", "`"]):
+    if contains_dangerous_chars(rule_content):
         return DeploymentResult(
             success=False,
             status=DeploymentStatus.FAILED,
@@ -217,8 +219,6 @@ def deploy_policy(
         )
 
     # Write rule to temp file
-    import tempfile
-
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".nft", delete=False
     ) as tmp:

@@ -5,10 +5,9 @@ ensuring type safety and validation for LLM-provided input.
 """
 
 from datetime import datetime
-from enum import Enum
-from typing import Annotated
+from enum import StrEnum
 
-from pydantic import BaseModel, Field, IPvAnyAddress, IPvAnyNetwork
+from pydantic import BaseModel, Field
 
 
 class NetworkInterface(BaseModel):
@@ -16,10 +15,10 @@ class NetworkInterface(BaseModel):
 
     name: str = Field(..., description="Interface name (e.g., eth0, enp3s0)")
     mac_address: str | None = Field(None, description="MAC address if available")
-    ipv4_addresses: list[Annotated[str, IPvAnyAddress]] = Field(
+    ipv4_addresses: list[str] = Field(
         default_factory=list, description="IPv4 addresses assigned"
     )
-    ipv6_addresses: list[Annotated[str, IPvAnyAddress]] = Field(
+    ipv6_addresses: list[str] = Field(
         default_factory=list, description="IPv6 addresses assigned"
     )
     state: str = Field(..., description="Interface state (UP, DOWN, UNKNOWN)")
@@ -42,7 +41,7 @@ class NetworkContext(BaseModel):
     )
 
 
-class RuleAction(str, Enum):
+class RuleAction(StrEnum):
     """Firewall rule actions."""
 
     ACCEPT = "accept"
@@ -54,7 +53,7 @@ class RuleAction(str, Enum):
     COUNTER = "counter"
 
 
-class RuleDirection(str, Enum):
+class RuleDirection(StrEnum):
     """Traffic direction for rules."""
 
     INPUT = "input"
@@ -62,7 +61,7 @@ class RuleDirection(str, Enum):
     FORWARD = "forward"
 
 
-class Protocol(str, Enum):
+class Protocol(StrEnum):
     """Common network protocols."""
 
     TCP = "tcp"
@@ -82,11 +81,11 @@ class FirewallRule(BaseModel):
 
     # Match conditions
     protocol: Protocol | None = Field(None, description="Protocol to match")
-    source_address: Annotated[str, IPvAnyNetwork] | None = Field(
-        None, description="Source IP/network"
+    source_address: str | None = Field(
+        None, description="Source IP/network (e.g., 10.0.0.0/8, 192.168.1.1)"
     )
-    destination_address: Annotated[str, IPvAnyNetwork] | None = Field(
-        None, description="Destination IP/network"
+    destination_address: str | None = Field(
+        None, description="Destination IP/network (e.g., 10.0.0.0/8, 192.168.1.1)"
     )
     source_port: int | str | None = Field(
         None, description="Source port or range (e.g., 1024-65535)"
@@ -111,22 +110,30 @@ class FirewallRule(BaseModel):
         parts = [f"add rule {self.family} {self.table} {self.chain}"]
 
         if self.interface_in:
-            parts.append(f"iifname {self.interface_in}")
+            parts.append(f'iifname "{self.interface_in}"')
         if self.interface_out:
-            parts.append(f"oifname {self.interface_out}")
+            parts.append(f'oifname "{self.interface_out}"')
 
+        # Protocol must come before port specifications
         if self.protocol and self.protocol != Protocol.ANY:
-            parts.append(f"{self.protocol.value}")
+            if self.protocol in (Protocol.TCP, Protocol.UDP):
+                parts.append(f"meta l4proto {self.protocol.value}")
+            else:
+                parts.append(f"meta l4proto {self.protocol.value}")
 
+        # Address matching requires ip/ip6 prefix
         if self.source_address:
-            parts.append(f"saddr {self.source_address}")
+            prefix = "ip6" if ":" in self.source_address else "ip"
+            parts.append(f"{prefix} saddr {self.source_address}")
         if self.destination_address:
-            parts.append(f"daddr {self.destination_address}")
+            prefix = "ip6" if ":" in self.destination_address else "ip"
+            parts.append(f"{prefix} daddr {self.destination_address}")
 
-        if self.source_port:
-            parts.append(f"sport {self.source_port}")
-        if self.destination_port:
-            parts.append(f"dport {self.destination_port}")
+        # Port matching requires protocol context (tcp/udp prefix)
+        if self.source_port and self.protocol in (Protocol.TCP, Protocol.UDP):
+            parts.append(f"{self.protocol.value} sport {self.source_port}")
+        if self.destination_port and self.protocol in (Protocol.TCP, Protocol.UDP):
+            parts.append(f"{self.protocol.value} dport {self.destination_port}")
 
         if self.comment:
             parts.append(f'comment "{self.comment}"')
@@ -161,7 +168,7 @@ class ValidationResult(BaseModel):
     )
 
 
-class ConflictType(str, Enum):
+class ConflictType(StrEnum):
     """Types of rule conflicts."""
 
     SHADOW = "shadow"  # New rule will never match (shadowed by existing)
@@ -184,7 +191,7 @@ class ConflictReport(BaseModel):
     )
 
 
-class DeploymentStatus(str, Enum):
+class DeploymentStatus(StrEnum):
     """Status of a rule deployment."""
 
     PENDING = "pending"

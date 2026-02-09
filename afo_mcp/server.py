@@ -13,9 +13,18 @@ from typing import Any
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 
-from afo_mcp.models import ConflictReport, DeploymentResult, NetworkContext, ValidationResult
+from afo_mcp.models import (
+    ConflictReport,
+    DeploymentResult,
+    NetworkContext,
+    ValidationResult,
+)
 from afo_mcp.tools.conflicts import detect_conflicts as _detect_conflicts
-from afo_mcp.tools.deployer import confirm_deployment, deploy_policy as _deploy_policy, rollback_deployment
+from afo_mcp.tools.deployer import (
+    confirm_deployment,
+    deploy_policy as _deploy_policy,
+    rollback_deployment,
+)
 from afo_mcp.tools.network import get_network_context as _get_network_context
 from afo_mcp.tools.validator import validate_syntax as _validate_syntax
 

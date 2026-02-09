@@ -11,7 +11,18 @@ from afo_mcp.models import (
     RuleAction,
     ValidationResult,
 )
-from afo_mcp.tools.conflicts import _parse_rule, _networks_overlap, _ports_overlap, detect_conflicts
+from afo_mcp.security import (
+    contains_dangerous_chars,
+    is_valid_chain_name,
+    is_valid_interface_name,
+    is_valid_table_name,
+)
+from afo_mcp.tools.conflicts import (
+    _networks_overlap,
+    _parse_rule,
+    _ports_overlap,
+    detect_conflicts,
+)
 from afo_mcp.tools.validator import validate_rule_structure
 
 
@@ -44,9 +55,10 @@ class TestModels:
         )
         cmd = rule.to_nft_command()
         assert "add rule inet filter input" in cmd
-        assert "tcp" in cmd
-        assert "dport 22" in cmd
+        assert "meta l4proto tcp" in cmd
+        assert "tcp dport 22" in cmd
         assert "accept" in cmd
+        assert 'comment "Allow SSH"' in cmd
 
     def test_firewall_rule_with_addresses(self):
         """Test FirewallRule with source/dest addresses."""
@@ -59,8 +71,22 @@ class TestModels:
             action=RuleAction.ACCEPT,
         )
         cmd = rule.to_nft_command()
-        assert "saddr 10.0.0.0/8" in cmd
-        assert "dport 443" in cmd
+        assert "ip saddr 10.0.0.0/8" in cmd
+        assert "tcp dport 443" in cmd
+
+    def test_firewall_rule_with_ipv6(self):
+        """Test FirewallRule with IPv6 addresses."""
+        rule = FirewallRule(
+            table="filter",
+            chain="input",
+            protocol=Protocol.TCP,
+            source_address="2001:db8::/32",
+            destination_port=80,
+            action=RuleAction.DROP,
+        )
+        cmd = rule.to_nft_command()
+        assert "ip6 saddr 2001:db8::/32" in cmd
+        assert "drop" in cmd
 
 
 class TestValidator:
@@ -105,7 +131,9 @@ class TestConflictDetection:
 
     def test_parse_rule_with_addresses(self):
         """Test rule parsing with addresses."""
-        rule = _parse_rule("add rule inet filter input ip saddr 10.0.0.0/8 ip daddr 192.168.1.1 drop")
+        rule = _parse_rule(
+            "add rule inet filter input ip saddr 10.0.0.0/8 ip daddr 192.168.1.1 drop"
+        )
         assert rule is not None
         assert rule.saddr == "10.0.0.0/8"
         assert rule.daddr == "192.168.1.1"
@@ -203,6 +231,60 @@ class TestDeploymentModels:
         assert DeploymentStatus.PENDING.value == "pending"
         assert DeploymentStatus.DEPLOYED.value == "deployed"
         assert DeploymentStatus.ROLLED_BACK.value == "rolled_back"
+
+
+class TestSecurity:
+    """Test security utilities."""
+
+    def test_dangerous_chars_detected(self):
+        """Test detection of shell injection characters."""
+        assert contains_dangerous_chars("echo; rm -rf /")
+        assert contains_dangerous_chars("cat | grep")
+        assert contains_dangerous_chars("$(whoami)")
+        assert contains_dangerous_chars("`id`")
+        assert contains_dangerous_chars("foo & bar")
+        assert contains_dangerous_chars("path\\to\\file")
+
+    def test_safe_content_allowed(self):
+        """Test that normal content passes."""
+        assert not contains_dangerous_chars("add rule inet filter input accept")
+        assert not contains_dangerous_chars("tcp dport 22")
+        assert not contains_dangerous_chars("ip saddr 10.0.0.0/8")
+
+    def test_valid_interface_names(self):
+        """Test interface name validation."""
+        assert is_valid_interface_name("eth0")
+        assert is_valid_interface_name("enp3s0")
+        assert is_valid_interface_name("vlan.100")
+        assert is_valid_interface_name("br-lan")
+        assert is_valid_interface_name("wg0")
+
+    def test_invalid_interface_names(self):
+        """Test rejection of invalid interface names."""
+        assert not is_valid_interface_name("")
+        assert not is_valid_interface_name("a" * 16)  # Too long
+        assert not is_valid_interface_name("eth 0")  # Space
+        assert not is_valid_interface_name("eth;0")  # Semicolon
+
+    def test_valid_table_names(self):
+        """Test table name validation."""
+        assert is_valid_table_name("filter")
+        assert is_valid_table_name("nat")
+        assert is_valid_table_name("my_table")
+        assert is_valid_table_name("_private")
+
+    def test_invalid_table_names(self):
+        """Test rejection of invalid table names."""
+        assert not is_valid_table_name("")
+        assert not is_valid_table_name("123table")  # Starts with number
+        assert not is_valid_table_name("my-table")  # Dash not allowed
+        assert not is_valid_table_name("my table")  # Space
+
+    def test_valid_chain_names(self):
+        """Test chain name validation."""
+        assert is_valid_chain_name("input")
+        assert is_valid_chain_name("FORWARD")
+        assert is_valid_chain_name("my_chain")
 
 
 # Integration tests (require nftables access)

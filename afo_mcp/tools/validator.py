@@ -1,10 +1,12 @@
 """Syntax validation tool - validates nftables commands before execution."""
 
+import re
 import subprocess
 import tempfile
 from pathlib import Path
 
 from afo_mcp.models import ValidationResult
+from afo_mcp.security import contains_dangerous_chars
 
 
 def validate_syntax(command: str, platform: str = "nftables") -> ValidationResult:
@@ -28,7 +30,7 @@ def validate_syntax(command: str, platform: str = "nftables") -> ValidationResul
         )
 
     # Sanitize command - prevent shell injection
-    if any(char in command for char in [";", "|", "&", "$", "`", "\\"]):
+    if contains_dangerous_chars(command):
         return ValidationResult(
             valid=False,
             command=command,
@@ -63,8 +65,6 @@ def validate_syntax(command: str, platform: str = "nftables") -> ValidationResul
 
                 # Try to extract line number from error
                 # Format: "/tmp/xxx.nft:3:1-5: Error: ..."
-                import re
-
                 line_match = re.search(r":(\d+):\d+-\d+:", line)
                 if line_match:
                     line_numbers.append(int(line_match.group(1)))
@@ -127,28 +127,12 @@ def validate_rule_structure(command: str) -> ValidationResult:
 
     command = command.strip()
 
-    # Check for basic nftables command structure
-    valid_prefixes = [
-        "add table",
-        "add chain",
-        "add rule",
-        "add set",
-        "add map",
-        "delete table",
-        "delete chain",
-        "delete rule",
-        "flush table",
-        "flush chain",
-        "flush ruleset",
-        "list table",
-        "list chain",
-        "list ruleset",
-        "table",  # For script format
-        "chain",  # For script format
-    ]
-
     # For multi-line scripts, check each statement
-    lines = [l.strip() for l in command.split("\n") if l.strip() and not l.strip().startswith("#")]
+    lines = [
+        line.strip()
+        for line in command.split("\n")
+        if line.strip() and not line.strip().startswith("#")
+    ]
 
     if not lines:
         return ValidationResult(
