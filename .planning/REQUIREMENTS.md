@@ -72,7 +72,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Advanced Features
 
-- **ADV-01**: User can migrate rules between firewall backends (e.g., iptables → nftables)
+- **ADV-01**: User can migrate rules between firewall backends (e.g., iptables -> nftables)
 - **ADV-02**: User can apply predefined policy templates (web server, database server, bastion host)
 - **ADV-03**: System suggests related hardening rules after blocking a threat (context-aware suggestions)
 - **ADV-04**: System detects cross-host policy inconsistencies (topology-aware conflict detection)
@@ -99,54 +99,54 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | — | Pending |
-| CORE-02 | — | Pending |
-| CORE-03 | — | Pending |
-| CORE-04 | — | Pending |
-| CORE-05 | — | Pending |
-| CORE-06 | — | Pending |
-| CORE-07 | — | Pending |
-| TUI-01 | — | Pending |
-| TUI-02 | — | Pending |
-| TUI-03 | — | Pending |
-| TUI-04 | — | Pending |
-| TUI-05 | — | Pending |
-| TUI-06 | — | Pending |
-| TUI-07 | — | Pending |
-| TUI-08 | — | Pending |
-| TUI-09 | — | Pending |
-| TUI-10 | — | Pending |
-| TUI-11 | — | Pending |
-| BACK-01 | — | Pending |
-| BACK-02 | — | Pending |
-| BACK-03 | — | Pending |
-| BACK-04 | — | Pending |
-| BACK-05 | — | Pending |
-| BACK-06 | — | Pending |
-| BACK-07 | — | Pending |
-| BACK-08 | — | Pending |
-| BACK-09 | — | Pending |
-| BACK-10 | — | Pending |
-| AGENT-01 | — | Pending |
-| AGENT-02 | — | Pending |
-| AGENT-03 | — | Pending |
-| AGENT-04 | — | Pending |
-| AGENT-05 | — | Pending |
-| AGENT-06 | — | Pending |
-| AGENT-07 | — | Pending |
-| AGENT-08 | — | Pending |
-| AGENT-09 | — | Pending |
-| AGENT-10 | — | Pending |
-| AGENT-11 | — | Pending |
-| AGENT-12 | — | Pending |
-| AGENT-13 | — | Pending |
-| AGENT-14 | — | Pending |
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Pending |
+| CORE-04 | Phase 1 | Pending |
+| CORE-05 | Phase 1 | Pending |
+| CORE-06 | Phase 1 | Pending |
+| CORE-07 | Phase 1 | Pending |
+| TUI-01 | Phase 2 | Pending |
+| TUI-02 | Phase 2 | Pending |
+| TUI-03 | Phase 2 | Pending |
+| TUI-04 | Phase 2 | Pending |
+| TUI-05 | Phase 2 | Pending |
+| TUI-06 | Phase 2 | Pending |
+| TUI-07 | Phase 2 | Pending |
+| TUI-08 | Phase 2 | Pending |
+| TUI-09 | Phase 4 | Pending |
+| TUI-10 | Phase 2 | Pending |
+| TUI-11 | Phase 2 | Pending |
+| BACK-01 | Phase 5 | Pending |
+| BACK-02 | Phase 5 | Pending |
+| BACK-03 | Phase 5 | Pending |
+| BACK-04 | Phase 5 | Pending |
+| BACK-05 | Phase 7 | Pending |
+| BACK-06 | Phase 7 | Pending |
+| BACK-07 | Phase 7 | Pending |
+| BACK-08 | Phase 7 | Pending |
+| BACK-09 | Phase 7 | Pending |
+| BACK-10 | Phase 7 | Pending |
+| AGENT-01 | Phase 3 | Pending |
+| AGENT-02 | Phase 4 | Pending |
+| AGENT-03 | Phase 4 | Pending |
+| AGENT-04 | Phase 4 | Pending |
+| AGENT-05 | Phase 4 | Pending |
+| AGENT-06 | Phase 3 | Pending |
+| AGENT-07 | Phase 3 | Pending |
+| AGENT-08 | Phase 3 | Pending |
+| AGENT-09 | Phase 6 | Pending |
+| AGENT-10 | Phase 6 | Pending |
+| AGENT-11 | Phase 4 | Pending |
+| AGENT-12 | Phase 4 | Pending |
+| AGENT-13 | Phase 6 | Pending |
+| AGENT-14 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 42 total
-- Mapped to phases: 0
-- Unmapped: 42 ⚠️
+- Mapped to phases: 42
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-10*
-*Last updated: 2026-02-10 after initial definition*
+*Last updated: 2026-02-10 after roadmap creation*
